@@ -1,0 +1,65 @@
+<html>
+ <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>katube</title>
+  <link rel="shortcut icon" type="image/x-icon" href="img/icon.png"/>
+  <meta name="google" content="notranslate">
+  <style>
+td {
+ vertical-align: top;
+}
+
+body {
+ background-color: #f9e79f;
+}
+
+a {
+ color: #008877;
+ text-decoration: none;
+}
+
+a:active {
+ color: #0000ee;
+}
+
+#addPlayOutput {
+ position: absolute;
+ z-index: 1;
+ background-color: #f9e79f;
+ border: solid 1px;
+ border-color: black;
+ padding: 3px;
+ display: none;
+}
+  </style>
+  <script src="script.js"></script>
+ </head>
+ <body>
+  <div id="addPlayOutput" onmouseleave="PLAYER.hideAddPlayOutput();">xyz</div>
+  <table>
+   <tr>
+    <td>
+     <input type="text" id="searchPlayInput" size="64"></input>
+     <button onclick="PLAYER.searchPlay();">Search</button>
+     <br/>
+    </td>
+    <td>
+     <input type="text" id="createPlayListInput" size="16"></input>
+     <button onclick="PLAYER.createPlayList();">Create</button>
+     <br/>
+    </td>
+   </tr>
+   <tr>
+    <td>
+     <div id="listPlayOutput"></div>
+    </td>
+    <td>
+     <div id="listPlayListOutput"></div>
+    </td>
+   </tr>
+  </table>
+ </body>
+ <script>
+  PLAYER.listPlayList();
+ </script>
+</html>
