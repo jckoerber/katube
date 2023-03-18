@@ -458,6 +458,8 @@ class Player {
     text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.upgradePlay(' + play.index + ');"><img width="16" src="img/upgrade.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.downgradePlay(' + play.index + ');"><img width="16" src="img/downgrade.bmp"/></a>';
+    text.innerHTML += '<br/>';
+    text.innerHTML += link.name;
    }
   }
  }
