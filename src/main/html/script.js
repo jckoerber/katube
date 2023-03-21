@@ -96,50 +96,47 @@ class AbstractItemList {
  }
 
  // removeItem
- removeItem(itemIndex) {
-  let itemPosition = this.getItemPosition(itemIndex);
+ removeItem(position) {
+  this.itemArray.splice(position, 1);
 
-  if (itemPosition != -1) {
-   this.itemArray.splice(itemPosition, 1);
-
-   this.store();
-  }
+  this.store();
  }
 
- // upgradeItem
- upgradeItem(itemIndex) {
-  let itemPosition = this.getItemPosition(itemIndex);
+ // moveItem
+ moveItem(position, newPosition) {
+  newPosition = newPosition % this.itemArray.length;
 
-  if (itemPosition != -1 && itemPosition > 0) {
-   let item = this.itemArray[itemPosition];
-
-   this.itemArray[itemPosition] = this.itemArray[itemPosition - 1];
-   this.itemArray[itemPosition - 1] = item;
-
-   this.store();
+  if (newPosition < 0) {
+   newPosition += this.itemArray.length;
   }
- }
 
- // downgradeItem
- downgradeItem(itemIndex) {
-  let itemPosition = this.getItemPosition(itemIndex);
+  if (newPosition != position) {
+   let item = this.itemArray[position];
 
-  if (itemPosition != -1 && itemPosition < (this.itemArray.length - 1)) {
-   let item = this.itemArray[itemPosition];
+   while (position > newPosition) {
+    this.itemArray[position] = this.itemArray[position - 1];
 
-   this.itemArray[itemPosition] = this.itemArray[itemPosition + 1];
-   this.itemArray[itemPosition + 1] = item;
+    position--;
+   }
+
+   while (position < newPosition) {
+    this.itemArray[position] = this.itemArray[position + 1];
+
+    position++;
+   }
+
+   this.itemArray[position] = item;
 
    this.store();
   }
  }
 
  // containsItem
- containsItem(itemName) {
+ containsItem(name) {
   let result = false;
 
   for (let position = 0; !result && position < this.itemArray.length; position++) {
-   if (this.itemArray[position].name === itemName) {
+   if (this.itemArray[position].name === name) {
     result = true;
    }
   }
@@ -253,6 +250,7 @@ class Player {
  // listPlayList
  listPlayList() {
   let output = document.getElementById('listPlayListOutput');
+  let position = 0;
 
   output.innerHTML = '';
 
@@ -261,10 +259,12 @@ class Player {
     output.innerHTML += '<br/>';
    }
 
-   output.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + item.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.upgradePlayList(' + item.index + ');"><img width="16" src="img/upgrade.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.downgradePlayList(' + item.index + ');"><img width="16" src="img/downgrade.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + item.index + ');">' + item.name + '</a>';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + position + ');">' + item.name + '</a>';
+
+   position++;
   }
  }
 
@@ -277,18 +277,9 @@ class Player {
   return false;
  }
 
- // upgradePlayList
- upgradePlayList(index) {
-  this.playListList.upgradeItem(index);
-
-  this.listPlayList();
-
-  return false;
- }
-
- // downgradePlayList
- downgradePlayList(index) {
-  this.playListList.downgradeItem(index);
+ // movePlayList
+ movePlayList(position, newPosition) {
+  this.playListList.moveItem(position, newPosition);
 
   this.listPlayList();
 
@@ -296,16 +287,30 @@ class Player {
  }
 
  // setPlayList
- setPlayList(index) {
-  this.playList = this.playListList.getItem(index);
+ setPlayList(position) {
+  this.playList = this.playListList.getItem(position);
 
-  this.listPlay();
+  this.listPlay(false);
 
   return false;
  }
 
  // listPlay
- listPlay() {
+ listPlay(keep) {
+  if (keep) {
+   for (const play of this.playList.itemArray) {
+    let video = document.getElementById(play.index);
+
+    if (video) {
+     play.keep = true;
+     play.currentTime = video.currentTime;
+     play.volume = video.volume;
+     play.paused = video.paused;
+     play.ended = video.ended;
+    }
+   }
+  }
+
   let output = document.getElementById('listPlayOutput');
 
   output.innerHTML = '';
@@ -313,6 +318,7 @@ class Player {
   if (this.playList) {
    let firstVideo = undefined;
    let previousVideo = undefined;
+   let position = 0;
 
    for (const play of this.playList.itemArray) {
     let table = document.createElement('table');
@@ -321,8 +327,11 @@ class Player {
     let secondTd = document.createElement('td');
     let video = document.createElement('video');
 
+    video.setAttribute('id', play.index);
     video.setAttribute('width', '400');
     video.setAttribute('controls', 'true');
+
+    video.volume = 0.1;
 
     firstTd.appendChild(video);
     tr.appendChild(firstTd);
@@ -330,7 +339,7 @@ class Player {
     table.appendChild(tr);
     output.appendChild(table);
 
-    this.loadPlay(play, video, secondTd);
+    this.loadPlay(play, video, secondTd, this.playList.name, position);
 
     if (!play.name.endsWith('.avi.json') && !play.name.endsWith('.mkv.json')) {
      if (!firstVideo) {
@@ -344,6 +353,8 @@ class Player {
      }
 
      previousVideo = video;
+
+     position++;
     }
    }
 
@@ -363,7 +374,7 @@ class Player {
    item.addItem(name);
 
    if (this.playList && this.playList.index === index) {
-    this.listPlay();
+    this.listPlay(true);
    }
   }
 
@@ -399,34 +410,25 @@ class Player {
  }
 
  // removePlay
- removePlay(index) {
-  this.playList.removeItem(index);
+ removePlay(position) {
+  this.playList.removeItem(position);
 
-  this.listPlay();
-
-  return false;
- }
-
- // upgradePlay
- upgradePlay(index) {
-  this.playList.upgradeItem(index);
-
-  this.listPlay();
+  this.listPlay(true);
 
   return false;
  }
 
- // downgradePlay
- downgradePlay(index) {
-  this.playList.downgradeItem(index);
+ // movePlay
+ movePlay(position, newPosition) {
+  this.playList.moveItem(position, newPosition);
 
-  this.listPlay();
+  this.listPlay(true);
 
   return false;
  }
 
  // loadPlay
- loadPlay(play, video, text) {
+ loadPlay(play, video, text, name, position) {
   let xhr = new XMLHttpRequest();
 
   xhr.responseType = 'text';
@@ -435,7 +437,7 @@ class Player {
   xhr.send();
   xhr.onload = function() {
    if (xhr.status != 200) {
-    console.log('An error occured while retrieving link file "' + play.name + '".');
+    console.log('An error occurred while retrieving link file "' + play.name + '".');
    } else {
     let link = JSON.parse(xhr.response);
     let source = document.createElement('source');
@@ -444,6 +446,20 @@ class Player {
     source.setAttribute('type', link.mimeType);
 
     video.appendChild(source);
+
+    if (play.keep) {
+     if (!play.ended) {
+      video.currentTime = play.currentTime;
+     }
+
+     video.volume = play.volume;
+
+     if (!play.paused) {
+      video.play();
+     }
+
+     play.keep = false;
+    }
 
     text.innerHTML = '<b>' + link.title + '</b>';
 
@@ -455,11 +471,20 @@ class Player {
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.upgradePlay(' + play.index + ');"><img width="16" src="img/upgrade.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.downgradePlay(' + play.index + ');"><img width="16" src="img/downgrade.bmp"/></a>';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 10) + ');"><img width="16" src="img/upgrade-10.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 10) + ');"><img width="16" src="img/downgrade-10.bmp"/></a>';
     text.innerHTML += '<br/>';
-    text.innerHTML += link.name;
+    text.innerHTML += '<b>[' + (position + 1) + ']</b>';
+
+    if (name) {
+     text.innerHTML += ' <b>' + name + '</b>';
+    }
+
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<i>' + link.name + '</i>';
    }
   }
  }
@@ -517,7 +542,7 @@ class Player {
 
   this.playList = this.resultPlayList;
 
-  this.listPlay();
+  this.listPlay(false);
  }
 
  loadDictionary() {
@@ -529,7 +554,7 @@ class Player {
   xhr.send();
   xhr.onload = function() {
    if (xhr.status != 200) {
-    console.log('An error occured while retrieving dictionary file.');
+    console.log('An error occurred while retrieving dictionary file.');
    } else {
     PLAYER.dictionary = JSON.parse(xhr.response);
    }
