@@ -260,8 +260,10 @@ class Player {
    }
 
    output.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + 0 + ');"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + -1 + ');"><img width="16" src="img/downgrade-2.bmp"/></a> ';
    output.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + position + ');">' + item.name + '</a>';
 
    position++;
@@ -472,10 +474,12 @@ class Player {
     text.innerHTML += '<br/>';
     text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 10) + ');"><img width="16" src="img/upgrade-10.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 10) + ');"><img width="16" src="img/downgrade-10.bmp"/></a>';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + 0 + ');"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 10) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 10) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + -1 + ');"><img width="16" src="img/downgrade-2.bmp"/></a> ';
     text.innerHTML += '<br/>';
     text.innerHTML += '<b>[' + (position + 1) + ']</b>';
 
