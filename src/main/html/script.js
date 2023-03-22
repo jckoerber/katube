@@ -306,8 +306,6 @@ class Player {
    } else {
     output.appendChild(output.children[position]);
    }
-
-   // todo - changer le positionnement
   }
 
   return false;
@@ -344,10 +342,9 @@ class Player {
   if (this.playList) {
    let firstVideo = undefined;
    let previousVideo = undefined;
-   let position = 0;
 
    for (const play of this.playList.itemArray) {
-    this.insertPlay(play, position);
+    this.insertPlay(play);
 //    if (!play.name.endsWith('.avi.json') && !play.name.endsWith('.mkv.json')) {
 //     if (!firstVideo) {
 //      firstVideo = video;
@@ -360,8 +357,6 @@ class Player {
 //     }
 
 //     previousVideo = video;
-
-     position++;
     }
    }
 
@@ -373,8 +368,17 @@ class Player {
 //  }
  }
 
+ // reorderPlay
+ reorderPlay() {
+  let output = document.getElementById('listPlayOutput');
+
+  for (let position = 0; position < output.children.length; position++) {
+   document.getElementById(output.children[position].getAttribute('id') + '-position').innerHTML = position + 1;
+  }
+ }
+
  // insertPlay
- insertPlay(play, position) {
+ insertPlay(play) {
   let output = document.getElementById('listPlayOutput');
 
   let div = document.createElement('div');
@@ -399,7 +403,7 @@ class Player {
   div.appendChild(table);
   output.appendChild(div);
 
-  this.loadPlay(play, video, secondTd, this.playList.name, position);
+  this.loadPlay(play, video, secondTd, this.playList.name, output.children.length);
  }
 
  // addPlay
@@ -410,8 +414,7 @@ class Player {
    let play = item.addItem(name);
 
    if (this.playList && this.playList.index === index) {
-    // todo remove du length
-    this.insertPlay(play, this.playList.itemArray.length);
+    this.insertPlay(play);
    }
   }
 
@@ -454,6 +457,8 @@ class Player {
    let output = document.getElementById('listPlayOutput');
 
    output.removeChild(output.children[position]);
+
+   this.reorderPlay();
   }
 
   return false;
@@ -474,6 +479,8 @@ class Player {
    } else {
     output.appendChild(output.children[position]);
    }
+
+   this.reorderPlay();
   }
 
   return false;
@@ -499,20 +506,6 @@ class Player {
 
     video.appendChild(source);
 
-//    if (play.keep) {
-//     if (!play.ended) {
-//      video.currentTime = play.currentTime;
-//     }
-//
-//     video.volume = play.volume;
-//
-//     if (!play.paused) {
-//      video.play();
-//     }
-//
-//     play.keep = false;
-//    }
-
     text.innerHTML = '<b>' + link.title + '</b>';
 
     for (const principal of link.principalArray) {
@@ -522,7 +515,6 @@ class Player {
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-1.bmp"/></a> ';
@@ -530,8 +522,9 @@ class Player {
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
     text.innerHTML += '<br/>';
-    text.innerHTML += '<b>[' + (position + 1) + ']</b>';
+    text.innerHTML += '<b>[<span id="play-' + play.index + '-position">' + position + '</span>]</b>';
 
     if (name) {
      text.innerHTML += ' <b>' + name + '</b>';
