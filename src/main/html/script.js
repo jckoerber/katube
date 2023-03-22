@@ -13,7 +13,7 @@ class AbstractItemList {
  toString() {
   let result = '';
 
-  for (let item of this.itemArray) {
+  for (const item of this.itemArray) {
    if (result.length > 0) {
     result += ', ';
    }
@@ -67,27 +67,16 @@ class AbstractItemList {
   this.itemIndex++;
 
   this.store();
- }
 
- // getItem
- getItem(itemIndex) {
-  let result = undefined;
-
-  for (let position = 0; !result && position < this.itemArray.length; position++) {
-   if (this.itemArray[position].index === itemIndex) {
-    result = this.itemArray[position];
-   }
-  }
-
-  return result;
+  return item;
  }
 
  // getItemPosition
- getItemPosition(itemIndex) {
+ getItemPosition(index) {
   let result = -1;
 
   for (let position = 0; result == -1 && position < this.itemArray.length; position++) {
-   if (this.itemArray[position].index === itemIndex) {
+   if (this.itemArray[position].index === index) {
     result = position;
    }
   }
@@ -95,31 +84,45 @@ class AbstractItemList {
   return result;
  }
 
- // removeItem
- removeItem(position) {
-  this.itemArray.splice(position, 1);
+ // getItem
+ getItem(index) {
+  let result = undefined;
 
-  this.store();
+  let position = this.getItemPosition(index);
+
+  if (position != -1) {
+   result = this.itemArray[position];
+  }
+
+  return result;
  }
 
  // moveItem
- moveItem(position, newPosition) {
-  newPosition = newPosition % this.itemArray.length;
+ moveItem(index, move, relative) {
+  let result = move;
 
-  if (newPosition < 0) {
-   newPosition += this.itemArray.length;
+  let position = this.getItemPosition(index);
+
+  if (relative) {
+   result += position;
   }
 
-  if (newPosition != position) {
+  result %= this.itemArray.length;
+
+  if (result < 0) {
+   result += this.itemArray.length;
+  }
+
+  if (result != position) {
    let item = this.itemArray[position];
 
-   while (position > newPosition) {
+   while (position > result) {
     this.itemArray[position] = this.itemArray[position - 1];
 
     position--;
    }
 
-   while (position < newPosition) {
+   while (position < result) {
     this.itemArray[position] = this.itemArray[position + 1];
 
     position++;
@@ -129,6 +132,21 @@ class AbstractItemList {
 
    this.store();
   }
+
+  return result;
+ }
+
+ // removeItem
+ removeItem(index) {
+  let result = this.getItemPosition(index);
+
+  if (result != -1) {
+   this.itemArray.splice(result, 1);
+
+   this.store();
+  }
+
+  return result;
  }
 
  // containsItem
@@ -169,8 +187,8 @@ class PlayList extends AbstractItemList {
  }
 
  // addItem
- addItem(itemName) {
-  super.addItem(new Play(itemName));
+ addItem(name) {
+  return super.addItem(new Play(name));
  }
 }
 
@@ -190,14 +208,14 @@ class PlayListList extends AbstractItemList {
  load() {
   super.load();
 
-  for (let item of this.itemArray) {
+  for (const item of this.itemArray) {
    item.load();
   }
  }
 
  // clear
  clear() {
-  for (let item of this.itemArray) {
+  for (const item of this.itemArray) {
    item.clear();
   }
 
@@ -205,8 +223,8 @@ class PlayListList extends AbstractItemList {
  }
 
  // addItem
- addItem(itemName) {
-  super.addItem(new PlayList(this.storagePrefix + itemName, itemName));
+ addItem(name) {
+  return super.addItem(new PlayList(this.storagePrefix + name, name));
  }
 }
 
@@ -238,81 +256,87 @@ class Player {
 
  // createPlayList
  createPlayList() {
-  let playListName = this.escapeName(document.getElementById('createPlayListInput').value);
+  let name = this.escapeName(document.getElementById('createPlayListInput').value);
 
-  if (!this.playListList.containsItem(playListName)) {
-   this.playListList.addItem(playListName);
+  if (!this.playListList.containsItem(name)) {
+   this.appendPlayList(this.playListList.addItem(name));
   }
-
-  this.listPlayList();
  }
 
  // listPlayList
  listPlayList() {
   let output = document.getElementById('listPlayListOutput');
-  let position = 0;
 
-  output.innerHTML = '';
-
-  for (let item of this.playListList.itemArray) {
-   if (output.innerHTML.length > 0) {
-    output.innerHTML += '<br/>';
-   }
-
-   output.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + 0 + ');"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + position + ', ' + -1 + ');"><img width="16" src="img/downgrade-2.bmp"/></a> ';
-   output.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + position + ');">' + item.name + '</a>';
-
-   position++;
+  for (const item of this.playListList.itemArray) {
+   this.appendPlayList(item);
   }
  }
 
- // removePlayList
- removePlayList(index) {
-  this.playListList.removeItem(index);
+ // appendPlayList
+ appendPlayList(playList) {
+  let output = document.getElementById('listPlayListOutput');
+  let div = document.createElement('div');
 
-  this.listPlayList();
+  div.setAttribute('id', 'play-list-' + playList.index);
+
+  div.innerHTML = '';
+
+  div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + playList.index + ');">' + playList.name + '</a>';
+
+  output.appendChild(div);
+ }
+
+ // movePlayList
+ movePlayList(index, move, relative) {
+  let position = this.playListList.getItemPosition(index);
+  let newPosition = this.playListList.moveItem(index, move, relative);
+
+  if (newPosition != position) {
+   let output = document.getElementById('listPlayListOutput');
+
+   if (newPosition < position) {
+    output.insertBefore(output.children[position], output.children[newPosition]);
+   } else if (newPosition + 1 < output.children.length) {
+    output.insertBefore(output.children[position], output.children[newPosition + 1]);
+   } else {
+    output.appendChild(output.children[position]);
+   }
+
+   // todo - changer le positionnement
+  }
 
   return false;
  }
 
- // movePlayList
- movePlayList(position, newPosition) {
-  this.playListList.moveItem(position, newPosition);
+ // removePlayList
+ removePlayList(index) {
+  let position = this.playListList.removeItem(index);
 
-  this.listPlayList();
+  if (position != -1) {
+   let output = document.getElementById('listPlayListOutput');
+
+   output.removeChild(output.children[position]);
+  }
 
   return false;
  }
 
  // setPlayList
- setPlayList(position) {
-  this.playList = this.playListList.getItem(position);
+ setPlayList(index) {
+  this.playList = this.playListList.getItem(index);
 
-  this.listPlay(false);
+  this.listPlay();
 
   return false;
  }
 
  // listPlay
- listPlay(keep) {
-  if (keep) {
-   for (const play of this.playList.itemArray) {
-    let video = document.getElementById(play.index);
-
-    if (video) {
-     play.keep = true;
-     play.currentTime = video.currentTime;
-     play.volume = video.volume;
-     play.paused = video.paused;
-     play.ended = video.ended;
-    }
-   }
-  }
-
+ listPlay() {
   let output = document.getElementById('listPlayOutput');
 
   output.innerHTML = '';
@@ -323,49 +347,59 @@ class Player {
    let position = 0;
 
    for (const play of this.playList.itemArray) {
-    let table = document.createElement('table');
-    let tr = document.createElement('tr');
-    let firstTd = document.createElement('td');
-    let secondTd = document.createElement('td');
-    let video = document.createElement('video');
+    this.insertPlay(play, position);
+//    if (!play.name.endsWith('.avi.json') && !play.name.endsWith('.mkv.json')) {
+//     if (!firstVideo) {
+//      firstVideo = video;
+//     }
+//
+//     if (previousVideo) {
+//      previousVideo.onended = function() {
+//       video.play();
+//      }
+//     }
 
-    video.setAttribute('id', play.index);
-    video.setAttribute('width', '400');
-    video.setAttribute('controls', 'true');
-
-    video.volume = 0.1;
-
-    firstTd.appendChild(video);
-    tr.appendChild(firstTd);
-    tr.appendChild(secondTd);
-    table.appendChild(tr);
-    output.appendChild(table);
-
-    this.loadPlay(play, video, secondTd, this.playList.name, position);
-
-    if (!play.name.endsWith('.avi.json') && !play.name.endsWith('.mkv.json')) {
-     if (!firstVideo) {
-      firstVideo = video;
-     }
-
-     if (previousVideo) {
-      previousVideo.onended = function() {
-       video.play();
-      }
-     }
-
-     previousVideo = video;
+//     previousVideo = video;
 
      position++;
     }
    }
 
-   if (previousVideo) {
-     previousVideo.onended = function() {
-      firstVideo.play();
-     }
-   }
-  }
+//   if (previousVideo) {
+//     previousVideo.onended = function() {
+//      firstVideo.play();
+//     }
+//   }
+//  }
+ }
+
+ // insertPlay
+ insertPlay(play, position) {
+  let output = document.getElementById('listPlayOutput');
+
+  let div = document.createElement('div');
+  let table = document.createElement('table');
+  let tr = document.createElement('tr');
+  let firstTd = document.createElement('td');
+  let secondTd = document.createElement('td');
+  let video = document.createElement('video');
+
+  div.setAttribute('id', 'play-' + play.index);
+
+  video.setAttribute('id', play.index);
+  video.setAttribute('width', '400');
+  video.setAttribute('controls', 'true');
+
+  video.volume = 0.1;
+
+  firstTd.appendChild(video);
+  tr.appendChild(firstTd);
+  tr.appendChild(secondTd);
+  table.appendChild(tr);
+  div.appendChild(table);
+  output.appendChild(div);
+
+  this.loadPlay(play, video, secondTd, this.playList.name, position);
  }
 
  // addPlay
@@ -373,10 +407,11 @@ class Player {
   let item = this.playListList.getItem(index);
 
   if (item) {
-   item.addItem(name);
+   let play = item.addItem(name);
 
    if (this.playList && this.playList.index === index) {
-    this.listPlay(true);
+    // todo remove du length
+    this.insertPlay(play, this.playList.itemArray.length);
    }
   }
 
@@ -412,19 +447,34 @@ class Player {
  }
 
  // removePlay
- removePlay(position) {
-  this.playList.removeItem(position);
+ removePlay(index) {
+  let position = this.playList.removeItem(index);
 
-  this.listPlay(true);
+  if (position != -1) {
+   let output = document.getElementById('listPlayOutput');
+
+   output.removeChild(output.children[position]);
+  }
 
   return false;
  }
 
  // movePlay
- movePlay(position, newPosition) {
-  this.playList.moveItem(position, newPosition);
+ movePlay(index, move, relative) {
+  let position = this.playList.getItemPosition(index);
+  let newPosition = this.playList.moveItem(index, move, relative);
 
-  this.listPlay(true);
+  if (newPosition != position) {
+   let output = document.getElementById('listPlayOutput');
+
+   if (newPosition < position) {
+    output.insertBefore(output.children[position], output.children[newPosition]);
+   } else if (newPosition + 1 < output.children.length) {
+    output.insertBefore(output.children[position], output.children[newPosition + 1]);
+   } else {
+    output.appendChild(output.children[position]);
+   }
+  }
 
   return false;
  }
@@ -449,19 +499,19 @@ class Player {
 
     video.appendChild(source);
 
-    if (play.keep) {
-     if (!play.ended) {
-      video.currentTime = play.currentTime;
-     }
-
-     video.volume = play.volume;
-
-     if (!play.paused) {
-      video.play();
-     }
-
-     play.keep = false;
-    }
+//    if (play.keep) {
+//     if (!play.ended) {
+//      video.currentTime = play.currentTime;
+//     }
+//
+//     video.volume = play.volume;
+//
+//     if (!play.paused) {
+//      video.play();
+//     }
+//
+//     play.keep = false;
+//    }
 
     text.innerHTML = '<b>' + link.title + '</b>';
 
@@ -473,13 +523,13 @@ class Player {
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + position + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + 0 + ');"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 10) + ');"><img width="16" src="img/upgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position - 1) + ');"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 1) + ');"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + (position + 10) + ');"><img width="16" src="img/downgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + position + ', ' + -1 + ');"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
     text.innerHTML += '<br/>';
     text.innerHTML += '<b>[' + (position + 1) + ']</b>';
 
