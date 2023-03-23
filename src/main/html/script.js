@@ -48,9 +48,11 @@ class ItemList {
   let result = -1;
 
   if (position != -1) {
-   result = this.shiftItemPosition(position, shift, relative);
+   let newPosition = this.shiftItemPosition(position, shift, relative);
 
-   if (position != result) {
+   if (position != newPosition) {
+    result = newPosition;
+
     let item = this.itemArray[position];
 
     while (position > result) {
@@ -224,16 +226,6 @@ class IndexedItemList extends NamedItemList {
 
   return result;
  }
-
- // moveIndexedItem
- moveIndexedItem(index, shift, relative) {
-  return this.moveItem(this.getIndexedItemPosition(index), shift, relative);
- }
-
- // removeIndexedItem
- removeIndexedItem(index) {
-  return this.removeItem(this.getIndexedItemPosition(index));
- }
 }
 
 // *********************
@@ -394,11 +386,11 @@ class Player {
  }
 
  // movePlayList
- movePlayList(index, move, relative) {
+ movePlayList(index, shift, relative) {
   let position = this.playListList.getIndexedItemPosition(index);
-  let newPosition = this.playListList.moveIndexedItem(index, move, relative);
+  let newPosition = this.playListList.moveItem(position, shift, relative);
 
-  if (newPosition != position) {
+  if (newPosition != -1) {
    let output = document.getElementById('listPlayListOutput');
 
    if (newPosition < position) {
@@ -415,12 +407,13 @@ class Player {
 
  // removePlayList
  removePlayList(index) {
-  let position = this.playListList.removeIndexedItem(index);
+  let position = this.playListList.getIndexedItemPosition(index);
+  let removedPosition = this.playListList.removeItem(position);
 
-  if (position != -1) {
+  if (removedPosition != -1) {
    let output = document.getElementById('listPlayListOutput');
 
-   output.removeChild(output.children[position]);
+   output.removeChild(output.children[removedPosition]);
   }
 
   return false;
@@ -564,28 +557,12 @@ class Player {
   div.style.display = 'none';
  }
 
- // removePlay
- removePlay(index) {
-  let position = this.displayedPlayList.removeIndexedItem(index);
-
-  this.listPlay();
-//  if (position != -1) {
-//   let output = document.getElementById('listPlayOutput');
-//
-//   output.removeChild(output.children[position]);
-//
-//   this.reorderPlay();
-//  }
-
-  return false;
- }
-
  // movePlay
- movePlay(index, move, relative) {
+ movePlay(index, shift, relative) {
   let position = this.displayedPlayList.getIndexedItemPosition(index);
-  let newPosition = this.displayedPlayList.moveIndexedItem(index, move, relative);
+  let newPosition = this.displayedPlayList.moveItem(position, shift, relative);
 
-  if (newPosition != position) {
+  if (newPosition != -1) {
    this.listPlay();
 //   let output = document.getElementById('listPlayOutput');
 //
@@ -596,6 +573,23 @@ class Player {
 //   } else {
 //    output.appendChild(output.children[position]);
 //   }
+//
+//   this.reorderPlay();
+  }
+
+  return false;
+ }
+
+ // removePlay
+ removePlay(index) {
+  let position = this.displayedPlayList.getIndexedItem(index);
+  let removedPosition = this.displayedPlayList.removeItem(position);
+
+  if (position != -1) {
+   this.listPlay();
+//   let output = document.getElementById('listPlayOutput');
+//
+//   output.removeChild(output.children[position]);
 //
 //   this.reorderPlay();
   }
