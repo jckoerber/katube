@@ -236,10 +236,10 @@ class IndexedItemList extends NamedItemList {
  }
 }
 
-// ******************
-// * PagingItemList *
-// ******************
-class PagingItemList extends IndexedItemList {
+// *********************
+// * PaginatedItemList *
+// *********************
+class PaginatedItemList extends IndexedItemList {
  constructor(storageId) {
   super(storageId);
 
@@ -277,7 +277,7 @@ class Play {
 // ************
 // * PlayList *
 // ************
-class PlayList extends PagingItemList {
+class PlayList extends PaginatedItemList {
  constructor(storageId, name) {
   super(storageId);
 
@@ -437,16 +437,6 @@ class Player {
   return false;
  }
 
- //
- toto(number) {
-  this.pageNumber = number;
-
-  this.listPage();
-  this.listPlay();
-
-  return false;
- }
-
  // listPage
  listPage() {
   let output = document.getElementById('listPageOutput');
@@ -464,10 +454,20 @@ class Player {
     if (number == this.pageNumber) {
      output.innerHTML += number + 1;
     } else {
-     output.innerHTML += '<a href="#" onclick="return PLAYER.toto(' + number + ');">' + (number + 1) + '</a>';
+     output.innerHTML += '<a href="#" onclick="return PLAYER.loadPage(' + number + ');">' + (number + 1) + '</a>';
     }
    }
   }
+ }
+
+ // loadPage
+ loadPage(number) {
+  this.pageNumber = number;
+
+  this.listPage();
+  this.listPlay();
+
+  return false;
  }
 
  // listPlay
@@ -523,7 +523,7 @@ class Player {
 
  // addPlay
  addPlay(index, name) {
-  let item = this.playListList.getItem(index);
+  let item = this.playListList.getIndexedItem(index);
 
   if (item) {
    let play = item.addItem(name);
@@ -566,36 +566,38 @@ class Player {
 
  // removePlay
  removePlay(index) {
-  let position = this.displayedPlayList.removeItem(index);
+  let position = this.displayedPlayList.removeIndexedItem(index);
 
-  if (position != -1) {
-   let output = document.getElementById('listPlayOutput');
-
-   output.removeChild(output.children[position]);
-
-   this.reorderPlay();
-  }
+  this.listPlay();
+//  if (position != -1) {
+//   let output = document.getElementById('listPlayOutput');
+//
+//   output.removeChild(output.children[position]);
+//
+//   this.reorderPlay();
+//  }
 
   return false;
  }
 
  // movePlay
  movePlay(index, move, relative) {
-  let position = this.displayedPlayList.getItemPosition(index);
-  let newPosition = this.displayedPlayList.moveItem(index, move, relative);
+  let position = this.displayedPlayList.getIndexedItemPosition(index);
+  let newPosition = this.displayedPlayList.moveIndexedItem(index, move, relative);
 
   if (newPosition != position) {
-   let output = document.getElementById('listPlayOutput');
-
-   if (newPosition < position) {
-    output.insertBefore(output.children[position], output.children[newPosition]);
-   } else if (newPosition + 1 < output.children.length) {
-    output.insertBefore(output.children[position], output.children[newPosition + 1]);
-   } else {
-    output.appendChild(output.children[position]);
-   }
-
-   this.reorderPlay();
+   this.listPlay();
+//   let output = document.getElementById('listPlayOutput');
+//
+//   if (newPosition < position) {
+//    output.insertBefore(output.children[position], output.children[newPosition]);
+//   } else if (newPosition + 1 < output.children.length) {
+//    output.insertBefore(output.children[position], output.children[newPosition + 1]);
+//   } else {
+//    output.appendChild(output.children[position]);
+//   }
+//
+//   this.reorderPlay();
   }
 
   return false;
