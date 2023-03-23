@@ -1,12 +1,103 @@
-// ********************
-// * AbstractItemList *
-// ********************
-class AbstractItemList {
- constructor(storageId) {
-  this.storageId = storageId;
-
+// ************
+// * ItemList *
+// ************
+class ItemList {
+ constructor() {
   this.itemArray = new Array();
-  this.itemIndex = 0;
+ }
+
+ // clear
+ clear() {
+  this.itemArray = new Array();
+ }
+
+ // addItem
+ addItem(item) {
+  let result = item;
+
+  this.itemArray.push(result);
+
+  return result;
+ }
+
+ // shiftItemPosition
+ shiftItemPosition(position, shift, relative) {
+  let result = -1;
+
+  let length = this.itemArray.length;
+
+  if (length != 0) {
+   result = shift;
+
+   if (relative) {
+    result += position;
+   }
+
+   result %= length;
+
+   if (result < 0) {
+    result += length;
+   }
+  }
+
+  return result;
+ }
+
+ // moveItem
+ moveItem(position, shift, relative) {
+  let result = -1;
+
+  if (position != -1) {
+   result = this.shiftItemPosition(position, shift, relative);
+
+   if (position != result) {
+    let item = this.itemArray[position];
+
+    while (position > result) {
+     this.itemArray[position] = this.itemArray[position - 1];
+
+     position--;
+    }
+
+    while (position < result) {
+     this.itemArray[position] = this.itemArray[position + 1];
+
+     position++;
+    }
+
+    this.itemArray[position] = item;
+
+    this.store();
+   }
+  }
+
+  return result;
+ }
+
+ // removeItem
+ removeItem(position) {
+  let result = -1;
+
+  if (position != -1) {
+   result = position;
+
+   this.itemArray.splice(result, 1);
+
+   this.store();
+  }
+
+  return result;
+ }
+}
+
+// *****************
+// * NamedItemList *
+// *****************
+class NamedItemList extends ItemList {
+ constructor(storageId) {
+  super();
+
+  this.storageId = storageId;
  }
 
  // toString
@@ -52,31 +143,68 @@ class AbstractItemList {
 
  // clear
  clear() {
-  this.itemArray = new Array();
-  this.itemIndex = 0;
+  super.clear();
 
   this.store();
  }
 
  // addItem
  addItem(item) {
-  this.itemArray.push(item);
-
-  item.index = this.itemIndex;
-
-  this.itemIndex++;
+  let result = super.addItem(item);
 
   this.store();
 
-  return item;
+  return result;
  }
 
- // getItemPosition
- getItemPosition(index) {
+ // getNamedItemPosition
+ getNamedItemPosition(name) {
   let result = -1;
 
-  for (let position = 0; result == -1 && position < this.itemArray.length; position++) {
-   if (this.itemArray[position].index === index) {
+  for (let position = 0, maxPosition = this.itemArray.length; result == -1 && position < maxPosition; position++) {
+   if (this.itemArray[position].name == name) {
+    result = position;
+   }
+  }
+
+  return result;
+ }
+}
+
+// *******************
+// * IndexedItemList *
+// *******************
+class IndexedItemList extends NamedItemList {
+ constructor(storageId) {
+  super(storageId);
+
+  this.itemIndex = 0;
+ }
+
+ // clear
+ clear() {
+  super.clear();
+
+  this.itemIndex = 0;
+ }
+
+ // addItem
+ addItem(item) {
+  let result = super.addItem(item);
+
+  result.index = this.itemIndex;
+
+  this.itemIndex++;
+
+  return result;
+ }
+
+ // getIndexedItemPosition
+ getIndexedItemPosition(index) {
+  let result = -1;
+
+  for (let position = 0, maxPosition = this.itemArray.length; result == -1 && position < maxPosition; position++) {
+   if (this.itemArray[position].index == index) {
     result = position;
    }
   }
@@ -84,11 +212,11 @@ class AbstractItemList {
   return result;
  }
 
- // getItem
- getItem(index) {
+ // getIndexedItem
+ getIndexedItem(index) {
   let result = undefined;
 
-  let position = this.getItemPosition(index);
+  let position = this.getIndexedItemPosition(index);
 
   if (position != -1) {
    result = this.itemArray[position];
@@ -97,66 +225,38 @@ class AbstractItemList {
   return result;
  }
 
- // moveItem
- moveItem(index, move, relative) {
-  let result = move;
-
-  let position = this.getItemPosition(index);
-
-  if (relative) {
-   result += position;
-  }
-
-  result %= this.itemArray.length;
-
-  if (result < 0) {
-   result += this.itemArray.length;
-  }
-
-  if (result != position) {
-   let item = this.itemArray[position];
-
-   while (position > result) {
-    this.itemArray[position] = this.itemArray[position - 1];
-
-    position--;
-   }
-
-   while (position < result) {
-    this.itemArray[position] = this.itemArray[position + 1];
-
-    position++;
-   }
-
-   this.itemArray[position] = item;
-
-   this.store();
-  }
-
-  return result;
+ // moveIndexedItem
+ moveIndexedItem(index, shift, relative) {
+  return this.moveItem(this.getIndexedItemPosition(index), shift, relative);
  }
 
- // removeItem
- removeItem(index) {
-  let result = this.getItemPosition(index);
+ // removeIndexedItem
+ removeIndexedItem(index) {
+  return this.removeItem(this.getIndexedItemPosition(index));
+ }
+}
 
-  if (result != -1) {
-   this.itemArray.splice(result, 1);
+// ******************
+// * PagingItemList *
+// ******************
+class PagingItemList extends IndexedItemList {
+ constructor(storageId) {
+  super(storageId);
 
-   this.store();
-  }
-
-  return result;
+  this.pageSize = 20;
  }
 
- // containsItem
- containsItem(name) {
-  let result = false;
+ // getPageCount
+ getPageCount() {
+  return Math.ceil(this.itemArray.length / this.pageSize);
+ }
 
-  for (let position = 0; !result && position < this.itemArray.length; position++) {
-   if (this.itemArray[position].name === name) {
-    result = true;
-   }
+ // getPage
+ getPage(number) {
+  let result = new Array();
+
+  for (let position = number * this.pageSize, maxPosition = Math.min(position + this.pageSize, this.itemArray.length); position < maxPosition; position++) {
+   result.push(this.itemArray[position]);
   }
 
   return result;
@@ -177,7 +277,7 @@ class Play {
 // ************
 // * PlayList *
 // ************
-class PlayList extends AbstractItemList {
+class PlayList extends PagingItemList {
  constructor(storageId, name) {
   super(storageId);
 
@@ -195,7 +295,7 @@ class PlayList extends AbstractItemList {
 // ****************
 // * PlayListList *
 // ****************
-class PlayListList extends AbstractItemList {
+class PlayListList extends IndexedItemList {
  constructor(storageId, storagePrefix) {
   super(storageId);
 
@@ -235,7 +335,9 @@ class Player {
  constructor() {
   this.playListList = new PlayListList('katube-playListList', 'katube-playList-');
   this.resultPlayList = new PlayList(undefined, undefined);
-  this.playList = undefined;
+  this.displayedPlayList = undefined;
+  this.playedPlayList = undefined;
+  this.pageNumber = 0;
   this.dictionary = undefined;
 
   this.loadDictionary();
@@ -245,7 +347,7 @@ class Player {
  escapeName(name) {
   let result = name.split('');
 
-  for (let index = 0; index < result.length; index++) {
+  for (let index = 0, maxIndex = result.length; index < maxIndex; index++) {
    if (' !#$%&()*+-/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXZ[]abcdefghijklmnopqrstuvwxyz{|}~'.indexOf(result[index]) == -1) {
     result[index] = '?';
    }
@@ -258,7 +360,7 @@ class Player {
  createPlayList() {
   let name = this.escapeName(document.getElementById('createPlayListInput').value);
 
-  if (!this.playListList.containsItem(name)) {
+  if (this.playListList.getNamedItemPosition(name) == -1) {
    this.appendPlayList(this.playListList.addItem(name));
   }
  }
@@ -293,8 +395,8 @@ class Player {
 
  // movePlayList
  movePlayList(index, move, relative) {
-  let position = this.playListList.getItemPosition(index);
-  let newPosition = this.playListList.moveItem(index, move, relative);
+  let position = this.playListList.getIndexedItemPosition(index);
+  let newPosition = this.playListList.moveIndexedItem(index, move, relative);
 
   if (newPosition != position) {
    let output = document.getElementById('listPlayListOutput');
@@ -313,7 +415,7 @@ class Player {
 
  // removePlayList
  removePlayList(index) {
-  let position = this.playListList.removeItem(index);
+  let position = this.playListList.removeIndexedItem(index);
 
   if (position != -1) {
    let output = document.getElementById('listPlayListOutput');
@@ -326,11 +428,46 @@ class Player {
 
  // setPlayList
  setPlayList(index) {
-  this.playList = this.playListList.getItem(index);
+  this.displayedPlayList = this.playListList.getIndexedItem(index);
+  this.pageNumber = 0;
 
+  this.listPage();
   this.listPlay();
 
   return false;
+ }
+
+ //
+ toto(number) {
+  this.pageNumber = number;
+
+  this.listPage();
+  this.listPlay();
+
+  return false;
+ }
+
+ // listPage
+ listPage() {
+  let output = document.getElementById('listPageOutput');
+
+  output.innerHTML = '';
+
+  if (this.displayedPlayList) {
+   let count = this.displayedPlayList.getPageCount();
+
+   for (let number = 0, maxNumber = count; number < maxNumber; number++) {
+    if (output.innerHTML.length > 0) {
+     output.innerHTML += ' ';
+    }
+
+    if (number == this.pageNumber) {
+     output.innerHTML += number + 1;
+    } else {
+     output.innerHTML += '<a href="#" onclick="return PLAYER.toto(' + number + ');">' + (number + 1) + '</a>';
+    }
+   }
+  }
  }
 
  // listPlay
@@ -339,40 +476,21 @@ class Player {
 
   output.innerHTML = '';
 
-  if (this.playList) {
+  if (this.displayedPlayList) {
    let firstVideo = undefined;
    let previousVideo = undefined;
 
-   for (const play of this.playList.itemArray) {
+   for (const play of this.displayedPlayList.getPage(this.pageNumber)) {
     this.insertPlay(play);
-//    if (!play.name.endsWith('.avi.json') && !play.name.endsWith('.mkv.json')) {
-//     if (!firstVideo) {
-//      firstVideo = video;
-//     }
-//
-//     if (previousVideo) {
-//      previousVideo.onended = function() {
-//       video.play();
-//      }
-//     }
-
-//     previousVideo = video;
-    }
    }
-
-//   if (previousVideo) {
-//     previousVideo.onended = function() {
-//      firstVideo.play();
-//     }
-//   }
-//  }
+  }
  }
 
  // reorderPlay
  reorderPlay() {
   let output = document.getElementById('listPlayOutput');
 
-  for (let position = 0; position < output.children.length; position++) {
+  for (let position = 0, maxPosition = output.children.length; position < maxPosition; position++) {
    document.getElementById(output.children[position].getAttribute('id') + '-position').innerHTML = position + 1;
   }
  }
@@ -392,9 +510,6 @@ class Player {
 
   video.setAttribute('id', play.index);
   video.setAttribute('width', '400');
-  video.setAttribute('controls', 'true');
-
-  video.volume = 0.1;
 
   firstTd.appendChild(video);
   tr.appendChild(firstTd);
@@ -403,7 +518,7 @@ class Player {
   div.appendChild(table);
   output.appendChild(div);
 
-  this.loadPlay(play, video, secondTd, this.playList.name, output.children.length);
+  this.loadPlay(play, video, secondTd, this.displayedPlayList.name, output.children.length);
  }
 
  // addPlay
@@ -413,7 +528,7 @@ class Player {
   if (item) {
    let play = item.addItem(name);
 
-   if (this.playList && this.playList.index === index) {
+   if (this.displayedPlayList && this.displayedPlayList.index == index) {
     this.insertPlay(play);
    }
   }
@@ -451,7 +566,7 @@ class Player {
 
  // removePlay
  removePlay(index) {
-  let position = this.playList.removeItem(index);
+  let position = this.displayedPlayList.removeItem(index);
 
   if (position != -1) {
    let output = document.getElementById('listPlayOutput');
@@ -466,8 +581,8 @@ class Player {
 
  // movePlay
  movePlay(index, move, relative) {
-  let position = this.playList.getItemPosition(index);
-  let newPosition = this.playList.moveItem(index, move, relative);
+  let position = this.displayedPlayList.getItemPosition(index);
+  let newPosition = this.displayedPlayList.moveItem(index, move, relative);
 
   if (newPosition != position) {
    let output = document.getElementById('listPlayOutput');
@@ -484,6 +599,65 @@ class Player {
   }
 
   return false;
+ }
+
+ // playPlay
+ playPlay(index) {
+  this.playedPlayList = this.displayedPlayList;
+
+  this.playIt(index);
+ }
+
+ // playIt
+ playIt(index) {
+  let xhr = new XMLHttpRequest();
+
+  xhr.responseType = 'text';
+
+  xhr.open('GET', 'summary/' + this.playedPlayList.getIndexedItem(index).name);
+  xhr.send();
+  xhr.onload = function() {
+   if (xhr.status != 200) {
+    console.log('An error occurred while retrieving link file "' + play.name + '".');
+   } else {
+    let link = JSON.parse(xhr.response);
+    let video = document.getElementById('playVideoOutput');
+    let child = video.firstChild;
+    let source = document.createElement('source');
+
+    if (child) {
+     video.removeChild(child);
+    }
+
+    source.setAttribute('src', 'data' + link.path);
+    source.setAttribute('type', link.mimeType);
+
+    video.appendChild(source);
+
+    video.load();
+
+    if (video.canPlayType) {
+    video.play();
+
+     video.onended = function() {PLAYER.playNextPlay(index);};
+    } else {
+     PLAYER.playNextPlay(index);
+    }
+   }
+  }
+
+  return false;
+ }
+
+ // playNextPlay
+ playNextPlay(index) {
+  let position = this.playedPlayList.getIndexedItemPosition(index);
+
+  position = this.playedPlayList.shiftItemPosition(position, 1, true);
+
+  if (position != -1) {
+   this.playIt(this.playedPlayList.itemArray[position].index);
+  }
  }
 
  // loadPlay
@@ -522,6 +696,7 @@ class Player {
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<b>[<span id="play-' + play.index + '-position">' + position + '</span>]</b>';
@@ -536,7 +711,7 @@ class Player {
   }
  }
 
- // getTage
+ // getTag
  getTag(tagName) {
   let result = undefined;
 
@@ -587,9 +762,11 @@ class Player {
    this.resultPlayList.addItem(count[0]);
   }
 
-  this.playList = this.resultPlayList;
+  this.displayedPlayList = this.resultPlayList;
+  this.pageNumber = 0;
 
-  this.listPlay(false);
+  this.listPage();
+  this.listPlay();
  }
 
  loadDictionary() {
