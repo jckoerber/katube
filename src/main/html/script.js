@@ -421,24 +421,22 @@ class PlayListManager extends PlayListListManager {
   super();
 
   this.displayedPlayList = undefined;
-  this.playedPlayList = undefined;
-  this.pageNumber = 0;
+  this.displayedPageNumber = -1;
  }
 
  // setDisplayedPlayList
  setDisplayedPlayList(index) {
   this.displayedPlayList = this.playListList.getIndexedItem(index);
-  this.pageNumber = 0;
+  this.displayedPageNumber = 0;
 
-  this.listPage();
   this.displayPlayList();
 
   return false;
  }
 
- // listPage
- listPage() {
-  let output = document.getElementById('listPageOutput');
+ // displayPagination
+ displayPagination(id) {
+  let output = document.getElementById(id);
 
   output.innerHTML = '';
 
@@ -450,7 +448,7 @@ class PlayListManager extends PlayListListManager {
      output.innerHTML += ' ';
     }
 
-    if (number == this.pageNumber) {
+    if (number == this.displayedPageNumber) {
      output.innerHTML += number + 1;
     } else {
      output.innerHTML += '<a href="#" onclick="return PLAYER.loadPage(' + number + ');">' + (number + 1) + '</a>';
@@ -459,43 +457,36 @@ class PlayListManager extends PlayListListManager {
   }
  }
 
+ // displayPlayList
+ displayPlayList() {
+  this.displayPagination('displayPaginationTopOutput');
+
+  let output = document.getElementById('displayPlayListOutput');
+
+  output.innerHTML = '';
+
+  let position = this.displayedPageNumber * this.displayedPlayList.pageSize;
+
+  for (const play of this.displayedPlayList.getPage(this.displayedPageNumber)) {
+   this.insertPlay(play, position);
+
+   position++;
+  }
+
+  this.displayPagination('displayPaginationBottomOutput');
+ }
+
  // loadPage
  loadPage(number) {
-  this.pageNumber = number;
+  this.displayedPageNumber = number;
 
-  this.listPage();
   this.displayPlayList();
 
   return false;
  }
 
- // displayPlayList
- displayPlayList() {
-  let output = document.getElementById('displayPlayListOutput');
-
-  output.innerHTML = '';
-
-  if (this.displayedPlayList) {
-   let firstVideo = undefined;
-   let previousVideo = undefined;
-
-   for (const play of this.displayedPlayList.getPage(this.pageNumber)) {
-    this.insertPlay(play);
-   }
-  }
- }
-
- // reorderPlay
- reorderPlay() {
-  let output = document.getElementById('displayPlayListOutput');
-
-  for (let position = 0, maxPosition = output.children.length; position < maxPosition; position++) {
-   document.getElementById(output.children[position].getAttribute('id') + '-position').innerHTML = position + 1;
-  }
- }
-
  // insertPlay
- insertPlay(play) {
+ insertPlay(play, position) {
   let output = document.getElementById('displayPlayListOutput');
 
   let div = document.createElement('div');
@@ -517,7 +508,58 @@ class PlayListManager extends PlayListListManager {
   div.appendChild(table);
   output.appendChild(div);
 
-  this.loadPlay(play, video, secondTd, this.displayedPlayList.name, output.children.length);
+  this.loadPlay(play, video, secondTd, this.displayedPlayList.name, position);
+ }
+
+ // loadPlay
+ loadPlay(play, video, text, name, position) {
+  let xhr = new XMLHttpRequest();
+
+  xhr.responseType = 'text';
+
+  xhr.open('GET', 'summary/' + play.name);
+  xhr.send();
+  xhr.onload = function() {
+   if (xhr.status != 200) {
+    console.log('An error occurred while retrieving link file "' + play.name + '".');
+   } else {
+    let link = JSON.parse(xhr.response);
+    let source = document.createElement('source');
+
+    source.setAttribute('src', 'data' + link.path);
+    source.setAttribute('type', link.mimeType);
+
+    video.appendChild(source);
+
+    text.innerHTML = '<b>' + link.title + '</b>';
+
+    for (const principal of link.principalArray) {
+     text.innerHTML += '<br/>' + principal;
+    }
+
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<b>[' + (position + 1) + ']</b>';
+
+    if (name) {
+     text.innerHTML += ' <b>' + name + '</b>';
+    }
+
+    text.innerHTML += '<br/>';
+    text.innerHTML += '<i>' + link.name + '</i>';
+   }
+  }
  }
 
  // addPlay
@@ -528,7 +570,7 @@ class PlayListManager extends PlayListListManager {
    let play = item.addItem(name);
 
    if (this.displayedPlayList && this.displayedPlayList.index == index) {
-    this.insertPlay(play);
+    this.displayPlayList();
    }
   }
 
@@ -570,17 +612,6 @@ class PlayListManager extends PlayListListManager {
 
   if (newPosition != -1) {
    this.displayPlayList();
-//   let output = document.getElementById('listPlayOutput');
-//
-//   if (newPosition < position) {
-//    output.insertBefore(output.children[position], output.children[newPosition]);
-//   } else if (newPosition + 1 < output.children.length) {
-//    output.insertBefore(output.children[position], output.children[newPosition + 1]);
-//   } else {
-//    output.appendChild(output.children[position]);
-//   }
-//
-//   this.reorderPlay();
   }
 
   return false;
@@ -593,18 +624,10 @@ class PlayListManager extends PlayListListManager {
 
   if (removedPosition != -1) {
    this.displayPlayList();
-//   let output = document.getElementById('listPlayOutput');
-//
-//   output.removeChild(output.children[position]);
-//
-//   this.reorderPlay();
   }
 
   return false;
  }
-
-
-
 }
 
 // ***************
@@ -613,14 +636,9 @@ class PlayListManager extends PlayListListManager {
 class PlayManager extends PlayListManager {
  constructor() {
   super();
-  this.resultPlayList = new PlayList(undefined, undefined);
 
-  this.dictionary = undefined;
-
-  this.loadDictionary();
+  this.playedPlayList = undefined;
  }
-
-
 
  // playPlay
  playPlay(index) {
@@ -680,56 +698,19 @@ class PlayManager extends PlayListManager {
    this.playIt(this.playedPlayList.itemArray[position].index);
   }
  }
+}
 
- // loadPlay
- loadPlay(play, video, text, name, position) {
-  let xhr = new XMLHttpRequest();
+// *****************
+// * SearchManager *
+// *****************
+class SearchManager extends PlayManager {
+ constructor() {
+  super();
 
-  xhr.responseType = 'text';
+  this.resultPlayList = new PlayList(undefined, undefined);
+  this.dictionary = undefined;
 
-  xhr.open('GET', 'summary/' + play.name);
-  xhr.send();
-  xhr.onload = function() {
-   if (xhr.status != 200) {
-    console.log('An error occurred while retrieving link file "' + play.name + '".');
-   } else {
-    let link = JSON.parse(xhr.response);
-    let source = document.createElement('source');
-
-    source.setAttribute('src', 'data' + link.path);
-    source.setAttribute('type', link.mimeType);
-
-    video.appendChild(source);
-
-    text.innerHTML = '<b>' + link.title + '</b>';
-
-    for (const principal of link.principalArray) {
-     text.innerHTML += '<br/>' + principal;
-    }
-
-    text.innerHTML += '<br/>';
-    text.innerHTML += '<br/>';
-    text.innerHTML += '<br/>';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
-    text.innerHTML += '<br/>';
-    text.innerHTML += '<b>[<span id="play-' + play.index + '-position">' + position + '</span>]</b>';
-
-    if (name) {
-     text.innerHTML += ' <b>' + name + '</b>';
-    }
-
-    text.innerHTML += '<br/>';
-    text.innerHTML += '<i>' + link.name + '</i>';
-   }
-  }
+  this.loadDictionary();
  }
 
  // getTag
@@ -786,7 +767,6 @@ class PlayManager extends PlayListManager {
   this.displayedPlayList = this.resultPlayList;
   this.pageNumber = 0;
 
-  this.listPage();
   this.displayPlayList();
  }
 
@@ -807,6 +787,6 @@ class PlayManager extends PlayListManager {
  }
 }
 
-let PLAYER = new PlayManager();
+let PLAYER = new SearchManager();
 
 
