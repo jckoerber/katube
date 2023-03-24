@@ -320,19 +320,40 @@ class PlayListList extends IndexedItemList {
  }
 }
 
-// **********
-// * Player *
-// **********
-class Player {
+// ***********************
+// * PlayListListManager *
+// ***********************
+class PlayListListManager {
  constructor() {
   this.playListList = new PlayListList('katube-playListList', 'katube-playList-');
-  this.resultPlayList = new PlayList(undefined, undefined);
-  this.displayedPlayList = undefined;
-  this.playedPlayList = undefined;
-  this.pageNumber = 0;
-  this.dictionary = undefined;
+ }
 
-  this.loadDictionary();
+ // displayPlayListList
+ displayPlayListList() {
+  let output = document.getElementById('displayPlayListListOutput');
+
+  for (const item of this.playListList.itemArray) {
+   this.appendPlayList(item);
+  }
+ }
+
+ // appendPlayList
+ appendPlayList(playList) {
+  let output = document.getElementById('displayPlayListListOutput');
+  let div = document.createElement('div');
+
+  div.setAttribute('id', 'play-list-' + playList.index);
+
+  div.innerHTML = '';
+
+  div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.setDisplayedPlayList(' + playList.index + ');">' + playList.name + '</a>';
+
+  output.appendChild(div);
  }
 
  // escapeName
@@ -352,37 +373,9 @@ class Player {
  createPlayList() {
   let name = this.escapeName(document.getElementById('createPlayListInput').value);
 
-  if (this.playListList.getNamedItemPosition(name) == -1) {
+  if (name.length > 0 && this.playListList.getNamedItemPosition(name) == -1) {
    this.appendPlayList(this.playListList.addItem(name));
   }
- }
-
- // listPlayList
- listPlayList() {
-  let output = document.getElementById('listPlayListOutput');
-
-  for (const item of this.playListList.itemArray) {
-   this.appendPlayList(item);
-  }
- }
-
- // appendPlayList
- appendPlayList(playList) {
-  let output = document.getElementById('listPlayListOutput');
-  let div = document.createElement('div');
-
-  div.setAttribute('id', 'play-list-' + playList.index);
-
-  div.innerHTML = '';
-
-  div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.setPlayList(' + playList.index + ');">' + playList.name + '</a>';
-
-  output.appendChild(div);
  }
 
  // movePlayList
@@ -391,7 +384,7 @@ class Player {
   let newPosition = this.playListList.moveItem(position, shift, relative);
 
   if (newPosition != -1) {
-   let output = document.getElementById('listPlayListOutput');
+   let output = document.getElementById('displayPlayListListOutput');
 
    if (newPosition < position) {
     output.insertBefore(output.children[position], output.children[newPosition]);
@@ -411,21 +404,34 @@ class Player {
   let removedPosition = this.playListList.removeItem(position);
 
   if (removedPosition != -1) {
-   let output = document.getElementById('listPlayListOutput');
+   let output = document.getElementById('displayPlayListListOutput');
 
    output.removeChild(output.children[removedPosition]);
   }
 
   return false;
  }
+}
 
- // setPlayList
- setPlayList(index) {
+// *******************
+// * PlayListManager *
+// *******************
+class PlayListManager extends PlayListListManager {
+ constructor() {
+  super();
+
+  this.displayedPlayList = undefined;
+  this.playedPlayList = undefined;
+  this.pageNumber = 0;
+ }
+
+ // setDisplayedPlayList
+ setDisplayedPlayList(index) {
   this.displayedPlayList = this.playListList.getIndexedItem(index);
   this.pageNumber = 0;
 
   this.listPage();
-  this.listPlay();
+  this.displayPlayList();
 
   return false;
  }
@@ -458,14 +464,14 @@ class Player {
   this.pageNumber = number;
 
   this.listPage();
-  this.listPlay();
+  this.displayPlayList();
 
   return false;
  }
 
- // listPlay
- listPlay() {
-  let output = document.getElementById('listPlayOutput');
+ // displayPlayList
+ displayPlayList() {
+  let output = document.getElementById('displayPlayListOutput');
 
   output.innerHTML = '';
 
@@ -481,7 +487,7 @@ class Player {
 
  // reorderPlay
  reorderPlay() {
-  let output = document.getElementById('listPlayOutput');
+  let output = document.getElementById('displayPlayListOutput');
 
   for (let position = 0, maxPosition = output.children.length; position < maxPosition; position++) {
    document.getElementById(output.children[position].getAttribute('id') + '-position').innerHTML = position + 1;
@@ -490,7 +496,7 @@ class Player {
 
  // insertPlay
  insertPlay(play) {
-  let output = document.getElementById('listPlayOutput');
+  let output = document.getElementById('displayPlayListOutput');
 
   let div = document.createElement('div');
   let table = document.createElement('table');
@@ -563,7 +569,7 @@ class Player {
   let newPosition = this.displayedPlayList.moveItem(position, shift, relative);
 
   if (newPosition != -1) {
-   this.listPlay();
+   this.displayPlayList();
 //   let output = document.getElementById('listPlayOutput');
 //
 //   if (newPosition < position) {
@@ -582,11 +588,11 @@ class Player {
 
  // removePlay
  removePlay(index) {
-  let position = this.displayedPlayList.getIndexedItem(index);
+  let position = this.displayedPlayList.getIndexedItemPosition(index);
   let removedPosition = this.displayedPlayList.removeItem(position);
 
-  if (position != -1) {
-   this.listPlay();
+  if (removedPosition != -1) {
+   this.displayPlayList();
 //   let output = document.getElementById('listPlayOutput');
 //
 //   output.removeChild(output.children[position]);
@@ -596,6 +602,25 @@ class Player {
 
   return false;
  }
+
+
+
+}
+
+// ***************
+// * PlayManager *
+// ***************
+class PlayManager extends PlayListManager {
+ constructor() {
+  super();
+  this.resultPlayList = new PlayList(undefined, undefined);
+
+  this.dictionary = undefined;
+
+  this.loadDictionary();
+ }
+
+
 
  // playPlay
  playPlay(index) {
@@ -762,7 +787,7 @@ class Player {
   this.pageNumber = 0;
 
   this.listPage();
-  this.listPlay();
+  this.displayPlayList();
  }
 
  loadDictionary() {
@@ -782,6 +807,6 @@ class Player {
  }
 }
 
-let PLAYER = new Player();
+let PLAYER = new PlayManager();
 
 
