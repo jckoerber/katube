@@ -187,16 +187,14 @@ class IndexedItemList extends NamedItemList {
  clear() {
   super.clear();
 
-  this.itemIndex = 0;
+  this.itemIndex = -1;
  }
 
  // addItem
  addItem(item) {
   let result = super.addItem(item);
 
-  result.index = this.itemIndex;
-
-  this.itemIndex++;
+  result.index = this.itemIndex++;
 
   return result;
  }
@@ -720,10 +718,25 @@ class SearchManager extends PlayManager {
   let result = undefined;
 
   if (this.dictionary) {
-
    for (const tag of this.dictionary.tagArray) {
     if (tag.name == tagName) {
      result = tag;
+     break;
+    }
+   }
+  }
+
+  return result;
+ }
+
+ // getTranslation
+ getTranslation(translationKey) {
+  let result = undefined;
+
+  if (this.dictionary) {
+   for (const translation of this.dictionary.translationArray) {
+    if (translation.key == translationKey) {
+     result = translation;
      break;
     }
    }
@@ -763,11 +776,11 @@ class SearchManager extends PlayManager {
   this.resultPlayList.clear();
 
   for (const count of countArray) {
-   this.resultPlayList.addItem(count[0]);
+   this.resultPlayList.addItem(this.getTranslation(count[0]).value);
   }
 
   this.displayedPlayList = this.resultPlayList;
-  this.pageNumber = 0;
+  this.displayedPageNumber = 0;
 
   this.displayPlayList();
  }
