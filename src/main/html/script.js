@@ -645,6 +645,8 @@ class PlayManager extends PlayListManager {
   this.playedPlayList = this.displayedPlayList;
 
   this.playIt(index);
+
+  return false;
  }
 
  // playIt
