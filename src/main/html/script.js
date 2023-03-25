@@ -345,10 +345,10 @@ class PlayListListManager {
   div.innerHTML = '';
 
   div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp"/></a> ';
   div.innerHTML += '<a href="#" onclick="return PLAYER.setDisplayedPlayList(' + playList.index + ');">' + playList.name + '</a>';
 
   output.appendChild(div);
@@ -539,12 +539,12 @@ class PlayListManager extends PlayListListManager {
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-2.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade-0.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-1.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-2.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-more.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-more.bmp"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp"/></a> ';
     text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
     text.innerHTML += '<br/>';
