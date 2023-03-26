@@ -529,6 +529,12 @@ class PlayListManager extends PlayListListManager {
 
     video.appendChild(source);
 
+    video.preload = 'metadata';
+
+    video.onloadedmetadata = function() {
+     video.currentTime = Math.floor(video.duration / 60);
+    }
+
     text.innerHTML = '<b>' + link.title + '</b>';
 
     for (const principal of link.principalArray) {

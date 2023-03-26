@@ -1,4 +1,5 @@
-<html>
+<!doctype html>
+<html lang="en-US">
  <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <title>katube</title>
@@ -31,41 +32,37 @@ a:active {
  padding: 3px;
  display: none;
 }
+
+#player {
+ display: table;
+}
+
+#leftSide, #rightSide {
+ display: table-cell;
+}
+
+#displayPaginationTopOutput, #displayPaginationBottomOutput {
+ text-align: center;
+}
   </style>
   <script src="script.js"></script>
  </head>
  <body>
   <div id="addPlayOutput" onmouseleave="PLAYER.hideAddPlayOutput();">xyz</div>
-  <table>
-   <tr>
-    <td>
-     <input type="text" id="searchPlayInput" size="64"/>
-     <button onclick="PLAYER.searchPlay();">Search</button>
-     <br/>
-    </td>
-    <td>
-     <input type="text" id="createPlayListInput" size="16"/>
-     <button onclick="PLAYER.createPlayList();">Create</button>
-     <br/>
-    </td>
-   </tr>
-   <tr>
-    <td>
-     <div id="displayPaginationTopOutput"></div>
-     <div id="displayPlayListOutput"></div>
-     <div id="displayPaginationBottomOutput"></div>
-    </td>
-    <td>
-     <div id="displayPlayListListOutput"></div>
-     <div>
-       <video id="playVideoOutput" width="600" controls="controls">
-       </video>
-       <div id="playTextOutput">
-       </div>
-     </div>
-    </td>
-   </tr>
-  </table>
+  <div id="player">
+   <div id="leftSide">
+    <div><input type="text" id="searchPlayInput" size="64"/><button onclick="PLAYER.searchPlay();">Search</button></div>
+    <div id="displayPaginationTopOutput"></div>
+    <div id="displayPlayListOutput"></div>
+    <div id="displayPaginationBottomOutput"></div>
+   </div>
+   <div id="rightSide">
+    <div><input type="text" id="createPlayListInput" size="16"/><button onclick="PLAYER.createPlayList();">Create</button></div>
+    <div id="displayPlayListListOutput"></div>
+    <video id="playVideoOutput" width="600" controls="controls"></video>
+    <div id="playTextOutput"></div>
+   </div>
+  </div>
  </body>
  <script>
   PLAYER.displayPlayListList();
