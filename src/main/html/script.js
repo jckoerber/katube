@@ -344,11 +344,11 @@ class PlayListListManager {
 
   div.innerHTML = '';
 
-  div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade.bmp"/></a> ';
-  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.removePlayList(' + playList.index + ');"><img width="16" src="img/remove.bmp" alt="remove"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp" alt="upgrade totally"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, true);"><img width="16" src="img/upgrade.bmp" alt="upgrade"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', 1, true);"><img width="16" src="img/downgrade.bmp" alt="downgrade"/></a> ';
+  div.innerHTML += '<a href="#" onclick="return PLAYER.movePlayList(' + playList.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp" alt="downgrade totally"/></a> ';
   div.innerHTML += '<a href="#" onclick="return PLAYER.setDisplayedPlayList(' + playList.index + ');">' + playList.name + '</a>';
 
   output.appendChild(div);
@@ -544,15 +544,16 @@ class PlayListManager extends PlayListListManager {
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<br/>';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-more.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-more.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp"/></a> ';
-    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp"/></a>';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.removePlay(' + play.index + ');"><img width="16" src="img/remove.bmp" alt=""/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 0, false);"><img width="16" src="img/upgrade-totally.bmp" alt="upgrade totally"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -10, true);"><img width="16" src="img/upgrade-more.bmp" alt="upgrade more"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, true);"><img width="16" src="img/upgrade.bmp" alt="upgrade"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 1, true);"><img width="16" src="img/downgrade.bmp" alt="downgrade"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', 10, true);"><img width="16" src="img/downgrade-more.bmp" alt="downgrade more"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.movePlay(' + play.index + ', -1, false);"><img width="16" src="img/downgrade-totally.bmp" alt="downgrade totally"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/load.bmp" alt="load"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.playPlay(' + play.index + ');"><img width="16" src="img/play.bmp" alt="play"/></a> ';
+    text.innerHTML += '<a href="#" onclick="return PLAYER.showAddPlayOutput(event, \'' + play.name + '\');"><img width="16" src="img/add.bmp" alt="add"/></a>';
     text.innerHTML += '<br/>';
     text.innerHTML += '<b>[' + (position + 1) + ']</b>';
 
@@ -810,4 +811,6 @@ class SearchManager extends PlayManager {
 
 let PLAYER = new SearchManager();
 
-
+window.onload = function() {
+ PLAYER.displayPlayListList();
+}
